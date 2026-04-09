@@ -8,15 +8,14 @@ Windows Performance Counters, Event Logs, and Heartbeat data from Arc-connected 
 ## CPU Alert
 **Alert name:** `Alert-ArcServer-HighCPU`  
 **Severity:** 2 (Warning)  
-**Evaluate:** Every 5 min | Lookback: 15 min | Threshold: > 0 results
+**Evaluate:** Every 5 min | Lookback: 15 min | Threshold: > 90%
 
 ```kql
 Perf
-| where ObjectName == 'Processor'
-    and CounterName == '% Processor Time'
-    and InstanceName == '_Total'
-| summarize AvgCPU = avg(CounterValue) by Computer, bin(TimeGenerated, 5m)
-| where AvgCPU > 90
+| where ObjectName in ("Processor Information", "Processor")
+| where CounterName == "% Processor Time"
+| where InstanceName == "_Total"
+| summarize AvgCPU = avg(CounterValue) by _ResourceId, Computer, bin(TimeGenerated, 5m)
 ```
 
 ---
@@ -24,14 +23,13 @@ Perf
 ## Memory Alert
 **Alert name:** `Alert-ArcServer-LowMemory`  
 **Severity:** 2 (Warning)  
-**Evaluate:** Every 5 min | Lookback: 15 min | Threshold: < 512 MB
+**Evaluate:** Every 5 min | Lookback: 15 min | Threshold: < 90%
 
 ```kql
 Perf
-| where ObjectName == 'Memory'
-    and CounterName == 'Available MBytes'
-| summarize AvgMemMB = avg(CounterValue) by Computer, bin(TimeGenerated, 5m)
-| where AvgMemMB < 512
+| where ObjectName == "Memory"
+| where CounterName == "% Committed Bytes In Use"
+| summarize AvgCommittedPct = avg(CounterValue) by _ResourceId, Computer, bin(TimeGenerated, 5m)
 ```
 
 ---
@@ -39,15 +37,19 @@ Perf
 ## Disk Space Alert
 **Alert name:** `Alert-ArcServer-LowDiskSpace`  
 **Severity:** 1 (Critical)  
-**Evaluate:** Every 15 min | Lookback: 30 min | Threshold: < 15% free
+**Evaluate:** Every 15 min | Lookback: 30 min | Threshold: > 90% used
 
 ```kql
-Perf
-| where ObjectName == 'LogicalDisk'
-    and CounterName == '% Free Space'
-    and InstanceName != '_Total'
-| summarize AvgFree = avg(CounterValue) by Computer, InstanceName, bin(TimeGenerated, 15m)
-| where AvgFree < 15
+InsightsMetrics
+| where Origin == "vm.azm.ms"
+| where Namespace == "LogicalDisk"
+| where Name == "FreeSpacePercentage"
+| extend Disk = tostring(todynamic(Tags)["vm.azm.ms/mountId"])
+| where isnotempty(Disk)
+| extend Host = tostring(split(Computer, ".")[0])
+| extend Resource = strcat(Host, " | ", Disk)
+| extend UsedPct = 100.0 - todouble(Val)
+| project _ResourceId, TimeGenerated, Resource, UsedPct
 ```
 
 ---
