@@ -62,8 +62,12 @@ InsightsMetrics
 
 ```kql
 Heartbeat
-| summarize LastHeartbeat = max(TimeGenerated) by Computer
-| where LastHeartbeat < ago(5m)
+| where TimeGenerated > ago(1h)
+| summarize LastHeartbeat = max(TimeGenerated) by _ResourceId, Computer
+| extend Host = tostring(split(Computer, ".")[0])
+| extend TimeSinceLast = now() - LastHeartbeat
+| where TimeSinceLast >= 5m
+| project Host, Computer, _ResourceId, LastHeartbeat, TimeSinceLast
 ```
 
 ---
