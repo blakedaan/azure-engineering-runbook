@@ -1,0 +1,47 @@
+# ============================================================
+# .gitignore — Azure Engineering Runbook
+# ============================================================
+# NEVER commit environment-specific or sensitive data.
+# All secrets must go through Key Vault.
+# ============================================================
+
+# ── Secrets & credentials ────────────────────────────────────
+*.env
+*.pfx
+*.pem
+*.key
+*.cer
+*credentials*
+*secret*
+*password*
+*connectionstring*
+
+# ── Terraform / local state ──────────────────────────────────
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars
+
+# ── Bicep / ARM parameter files with real values ─────────────
+*.parameters.json
+!*.parameters.sample.json
+
+# ── Azure CLI cached credentials ─────────────────────────────
+.azure/
+
+# ── PowerShell artifacts ─────────────────────────────────────
+*.ps1xml
+# Exclude test output folders
+TestResults/
+
+# ── Editor & OS ──────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
