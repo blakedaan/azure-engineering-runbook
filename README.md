@@ -2,7 +2,7 @@
 
 > **Environment:** Azure Hybrid (Arc-connected on-prem + Azure SQL VMs)  
 > **Stack:** Azure Arc · SQL Server · Microsoft Sentinel · Defender for Cloud · Azure Automation  
-> **Author:** DBA / Cloud & Security Engineer  
+> **Author:** Blake Daniels  
 > **Last Updated:** April 2026
 
 ---
